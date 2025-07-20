@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NetflixInput } from '@/components/NetflixInput';
 import { authenticateUser } from '@/utils/auth';
@@ -12,6 +12,17 @@ export const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedCredentials = localStorage.getItem('netflix-remember-me');
+    if (savedCredentials) {
+      const { email: savedEmail, password: savedPassword } = JSON.parse(savedCredentials);
+      setEmail(savedEmail);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -20,6 +31,13 @@ export const Login = () => {
       const result = authenticateUser(email, password);
       
       if (result.success) {
+        // Save credentials if remember me is checked
+        if (rememberMe) {
+          localStorage.setItem('netflix-remember-me', JSON.stringify({ email, password }));
+        } else {
+          localStorage.removeItem('netflix-remember-me');
+        }
+
         toast({
           title: "Success!",
           description: result.message,
