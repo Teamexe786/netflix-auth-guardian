@@ -110,13 +110,6 @@ export const Login = () => {
         
         <div className="space-y-4">
           <p className="text-netflix-light-gray">
-            New to Netflix?{' '}
-            <a href="#" className="text-foreground hover:underline">
-              Sign up now
-            </a>
-          </p>
-          
-          <p className="text-netflix-light-gray">
             Admin?{' '}
             <button 
               onClick={() => navigate('/admin')}

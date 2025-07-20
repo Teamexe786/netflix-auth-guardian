@@ -15,17 +15,37 @@ export const Admin = () => {
     status: 'Live' as 'Live' | 'Off',
     expireTime: ''
   });
+  const [accessCode, setAccessCode] = useState('');
+  const [isCodeVerified, setIsCodeVerified] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const authState = getAuthState();
-    if (!authState.isAuthenticated || !authState.isAdmin) {
-      navigate('/');
-      return;
+    // Check if admin code was already verified in this session
+    const adminAccess = sessionStorage.getItem('admin_access_verified');
+    if (adminAccess === 'true') {
+      setIsCodeVerified(true);
+      setUsers(getUsers());
     }
-    setUsers(getUsers());
-  }, [navigate]);
+  }, []);
+
+  const verifyAccessCode = () => {
+    if (accessCode === '786391') {
+      setIsCodeVerified(true);
+      sessionStorage.setItem('admin_access_verified', 'true');
+      setUsers(getUsers());
+      toast({
+        title: "Access Granted",
+        description: "Welcome to Admin Panel",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "Invalid access code",
+      });
+    }
+  };
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +85,7 @@ export const Admin = () => {
 
   const handleLogout = () => {
     logout();
+    sessionStorage.removeItem('admin_access_verified');
     navigate('/');
     toast({
       title: "Logged out",
@@ -81,6 +102,38 @@ export const Admin = () => {
       minute: '2-digit'
     });
   };
+
+  // Show access code verification screen
+  if (!isCodeVerified) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="glass-card p-16 w-full max-w-md mx-auto">
+          <h2 className="text-foreground text-3xl font-medium mb-6 text-center">Admin Access</h2>
+          <div className="mb-6">
+            <NetflixInput
+              type="password"
+              label="Enter 6-digit access code"
+              value={accessCode}
+              onChange={setAccessCode}
+              required
+            />
+          </div>
+          <button 
+            onClick={verifyAccessCode}
+            className="netflix-button w-full"
+          >
+            Verify Access
+          </button>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full mt-4 px-6 py-4 bg-secondary text-secondary-foreground rounded hover:bg-accent transition-colors"
+          >
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8">
