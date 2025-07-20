@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NetflixInput } from '@/components/NetflixInput';
-import { getUsers, addUser, logout, getAuthState } from '@/utils/auth';
+import { getUsers, addUser, updateUser, deleteUser, logout, getAuthState } from '@/utils/auth';
 import { User } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Users, LogOut, Plus } from 'lucide-react';
+import { Trash2, Users, LogOut, Plus, Edit2, Save, X } from 'lucide-react';
 
 export const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -17,6 +17,8 @@ export const Admin = () => {
   });
   const [accessCode, setAccessCode] = useState('');
   const [isCodeVerified, setIsCodeVerified] = useState(false);
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -93,6 +95,68 @@ export const Admin = () => {
     });
   };
 
+  const handleEditUser = (user: User) => {
+    setEditingUser(user.id);
+    setEditForm({ ...user });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editForm) return;
+    
+    if (!editForm.email || !editForm.password || !editForm.expireTime) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all fields.",
+      });
+      return;
+    }
+
+    try {
+      const updatedData = {
+        ...editForm,
+        expireTime: new Date(editForm.expireTime).toISOString()
+      };
+      
+      updateUser(editForm.id, updatedData);
+      setUsers(getUsers());
+      setEditingUser(null);
+      setEditForm(null);
+      
+      toast({
+        title: "Success!",
+        description: "User updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update user.",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setEditForm(null);
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    if (deleteUser(userId)) {
+      setUsers(getUsers());
+      toast({
+        title: "Success!",
+        description: "User deleted successfully.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete user.",
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -101,6 +165,10 @@ export const Admin = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const formatDateForInput = (dateString: string) => {
+    return new Date(dateString).toISOString().slice(0, 16);
   };
 
   // Show access code verification screen
@@ -234,6 +302,7 @@ export const Admin = () => {
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left py-3 px-4 text-muted-foreground">Email</th>
+                <th className="text-left py-3 px-4 text-muted-foreground">Password</th>
                 <th className="text-left py-3 px-4 text-muted-foreground">Status</th>
                 <th className="text-left py-3 px-4 text-muted-foreground">Expires</th>
                 <th className="text-left py-3 px-4 text-muted-foreground">Actions</th>
@@ -242,24 +311,95 @@ export const Admin = () => {
             <tbody>
               {users.map((user) => (
                 <tr key={user.id} className="border-b border-border/50">
-                  <td className="py-3 px-4 text-foreground">{user.email}</td>
-                  <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      user.status === 'Live' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                    }`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-muted-foreground">
-                    {formatDate(user.expireTime)}
-                  </td>
-                  <td className="py-3 px-4">
-                    {user.email !== 'admin@netflix.com' && (
-                      <button className="text-red-400 hover:text-red-300 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </td>
+                  {editingUser === user.id ? (
+                    // Edit Mode
+                    <>
+                      <td className="py-3 px-4">
+                        <input
+                          type="email"
+                          value={editForm?.email || ''}
+                          onChange={(e) => setEditForm(prev => prev ? {...prev, email: e.target.value} : null)}
+                          className="netflix-input text-sm py-1 px-2 h-8"
+                        />
+                      </td>
+                      <td className="py-3 px-4">
+                        <input
+                          type="text"
+                          value={editForm?.password || ''}
+                          onChange={(e) => setEditForm(prev => prev ? {...prev, password: e.target.value} : null)}
+                          className="netflix-input text-sm py-1 px-2 h-8"
+                        />
+                      </td>
+                      <td className="py-3 px-4">
+                        <select
+                          value={editForm?.status || 'Live'}
+                          onChange={(e) => setEditForm(prev => prev ? {...prev, status: e.target.value as 'Live' | 'Off'} : null)}
+                          className="netflix-input text-sm py-1 px-2 h-8 appearance-none"
+                        >
+                          <option value="Live">Live</option>
+                          <option value="Off">Off</option>
+                        </select>
+                      </td>
+                      <td className="py-3 px-4">
+                        <input
+                          type="datetime-local"
+                          value={editForm?.expireTime ? formatDateForInput(editForm.expireTime) : ''}
+                          onChange={(e) => setEditForm(prev => prev ? {...prev, expireTime: e.target.value} : null)}
+                          className="netflix-input text-sm py-1 px-2 h-8"
+                        />
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={handleSaveEdit}
+                            className="text-green-400 hover:text-green-300 transition-colors"
+                          >
+                            <Save className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={handleCancelEdit}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    // View Mode
+                    <>
+                      <td className="py-3 px-4 text-foreground">{user.email}</td>
+                      <td className="py-3 px-4 text-foreground">{'•'.repeat(user.password.length)}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          user.status === 'Live' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {formatDate(user.expireTime)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditUser(user)}
+                            className="text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          {user.email !== 'admin@netflix.com' && (
+                            <button 
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-red-400 hover:text-red-300 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

@@ -38,6 +38,31 @@ export const addUser = (userData: Omit<User, 'id'>): User => {
   return newUser;
 };
 
+export const updateUser = (userId: string, userData: Partial<Omit<User, 'id'>>): boolean => {
+  const users = getUsers();
+  const userIndex = users.findIndex(u => u.id === userId);
+  
+  if (userIndex === -1) {
+    return false;
+  }
+  
+  users[userIndex] = { ...users[userIndex], ...userData };
+  saveUsers(users);
+  return true;
+};
+
+export const deleteUser = (userId: string): boolean => {
+  const users = getUsers();
+  const filteredUsers = users.filter(u => u.id !== userId);
+  
+  if (filteredUsers.length === users.length) {
+    return false; // User not found
+  }
+  
+  saveUsers(filteredUsers);
+  return true;
+};
+
 export const authenticateUser = (email: string, password: string): { success: boolean; message: string; user?: User; isAdmin?: boolean } => {
   const users = getUsers();
   const user = users.find(u => u.email === email && u.password === password);
