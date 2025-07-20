@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NetflixInput } from '@/components/NetflixInput';
-import { authenticateUser } from '@/utils/auth';
+import { authenticateUser } from '@/utils/supabase-auth';
 import { useToast } from '@/hooks/use-toast';
 
 export const Login = () => {
@@ -28,7 +28,7 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      const result = authenticateUser(email, password);
+      const result = await authenticateUser(email, password);
       
       if (result.success) {
         // Save credentials if remember me is checked

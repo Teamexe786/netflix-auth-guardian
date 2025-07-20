@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NetflixInput } from '@/components/NetflixInput';
-import { getUsers, addUser, updateUser, deleteUser, logout, getAuthState } from '@/utils/auth';
+import { getUsers, addUser, updateUser, deleteUser, logout, getAuthState, subscribeToUsers } from '@/utils/supabase-auth';
 import { User } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Users, LogOut, Plus, Edit2, Save, X } from 'lucide-react';
+import { Trash2, Users, LogOut, Plus, Edit2, Save, X, Zap } from 'lucide-react';
+import { RealtimeTest } from '@/components/RealtimeTest';
 
 export const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -27,15 +28,44 @@ export const Admin = () => {
     const adminAccess = sessionStorage.getItem('admin_access_verified');
     if (adminAccess === 'true') {
       setIsCodeVerified(true);
-      setUsers(getUsers());
+      loadUsers();
     }
   }, []);
+
+  // Load users and set up realtime subscription
+  const loadUsers = async () => {
+    try {
+      const usersList = await getUsers();
+      setUsers(usersList);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load users.",
+      });
+    }
+  };
+
+  // Set up realtime subscription when code is verified
+  useEffect(() => {
+    if (!isCodeVerified) return;
+
+    const unsubscribe = subscribeToUsers((updatedUsers) => {
+      setUsers(updatedUsers);
+      toast({
+        title: "Data Updated",
+        description: "User data refreshed in real-time!",
+      });
+    });
+
+    return unsubscribe;
+  }, [isCodeVerified]);
 
   const verifyAccessCode = () => {
     if (accessCode === '786391') {
       setIsCodeVerified(true);
       sessionStorage.setItem('admin_access_verified', 'true');
-      setUsers(getUsers());
+      loadUsers();
       toast({
         title: "Access Granted",
         description: "Welcome to Admin Panel",
@@ -49,7 +79,7 @@ export const Admin = () => {
     }
   };
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newUser.email || !newUser.password || !newUser.expireTime) {
@@ -67,8 +97,7 @@ export const Admin = () => {
         expireTime: new Date(newUser.expireTime).toISOString()
       };
       
-      addUser(userData);
-      setUsers(getUsers());
+      await addUser(userData);
       setNewUser({ email: '', password: '', status: 'Live', expireTime: '' });
       setShowAddForm(false);
       
@@ -100,7 +129,7 @@ export const Admin = () => {
     setEditForm({ ...user });
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editForm) return;
     
     if (!editForm.email || !editForm.password || !editForm.expireTime) {
@@ -118,8 +147,7 @@ export const Admin = () => {
         expireTime: new Date(editForm.expireTime).toISOString()
       };
       
-      updateUser(editForm.id, updatedData);
-      setUsers(getUsers());
+      await updateUser(editForm.id, updatedData);
       setEditingUser(null);
       setEditForm(null);
       
@@ -141,14 +169,14 @@ export const Admin = () => {
     setEditForm(null);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    if (deleteUser(userId)) {
-      setUsers(getUsers());
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await deleteUser(userId);
       toast({
         title: "Success!",
         description: "User deleted successfully.",
       });
-    } else {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -222,14 +250,24 @@ export const Admin = () => {
         </div>
       </div>
 
-      {/* Add User Button */}
-      <div className="mb-6">
+      {/* Realtime Test Component */}
+      <RealtimeTest />
+
+      {/* Action Buttons */}
+      <div className="mb-6 flex gap-4">
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           className="flex items-center gap-2 netflix-button max-w-xs"
         >
           <Plus className="w-4 h-4" />
           Add New User
+        </button>
+        <button
+          onClick={() => navigate('/realtime-demo')}
+          className="flex items-center gap-2 px-4 py-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors max-w-xs"
+        >
+          <Zap className="w-4 h-4" />
+          Test Realtime
         </button>
       </div>
 
