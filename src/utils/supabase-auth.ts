@@ -35,23 +35,32 @@ export const getUsers = async (): Promise<User[]> => {
 };
 
 export const addUser = async (userData: Omit<User, 'id'>): Promise<User> => {
-  const { data, error } = await supabase
-    .from('users')
-    .insert({
-      email: userData.email,
-      password: userData.password,
-      status: userData.status,
-      expire_time: userData.expireTime
-    })
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .insert({
+        email: userData.email,
+        password: userData.password,
+        status: userData.status,
+        expire_time: userData.expireTime
+      })
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Error adding user:', error);
+    if (error) {
+      console.error('Supabase error adding user:', error);
+      throw new Error(`Database error: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error('No data returned from database');
+    }
+
+    return convertToAppUser(data);
+  } catch (error) {
+    console.error('Error in addUser:', error);
     throw error;
   }
-
-  return convertToAppUser(data);
 };
 
 export const updateUser = async (userId: string, userData: Partial<Omit<User, 'id'>>): Promise<boolean> => {
