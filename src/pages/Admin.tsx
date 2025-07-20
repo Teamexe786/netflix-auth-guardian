@@ -4,8 +4,7 @@ import { NetflixInput } from '@/components/NetflixInput';
 import { getUsers, addUser, updateUser, deleteUser, logout, getAuthState, subscribeToUsers } from '@/utils/supabase-auth';
 import { User } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Users, LogOut, Plus, Edit2, Save, X, Zap } from 'lucide-react';
-import { RealtimeTest } from '@/components/RealtimeTest';
+import { Trash2, Users, LogOut, Plus, Edit2, Save, X } from 'lucide-react';
 
 export const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -172,6 +171,8 @@ export const Admin = () => {
   const handleDeleteUser = async (userId: string) => {
     try {
       await deleteUser(userId);
+      // Instantly remove the user from the UI
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
       toast({
         title: "Success!",
         description: "User deleted successfully.",
@@ -250,9 +251,6 @@ export const Admin = () => {
         </div>
       </div>
 
-      {/* Realtime Test Component */}
-      <RealtimeTest />
-
       {/* Action Buttons */}
       <div className="mb-6 flex gap-4">
         <button
@@ -261,13 +259,6 @@ export const Admin = () => {
         >
           <Plus className="w-4 h-4" />
           Add New User
-        </button>
-        <button
-          onClick={() => navigate('/realtime-demo')}
-          className="flex items-center gap-2 px-4 py-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors max-w-xs"
-        >
-          <Zap className="w-4 h-4" />
-          Test Realtime
         </button>
       </div>
 
