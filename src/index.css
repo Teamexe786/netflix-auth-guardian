@@ -1,58 +1,64 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Netflix-inspired Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Netflix Black Theme */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Netflix Red */
+    --primary: 0 83% 47%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Dark Gray */
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted Grays */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 0% 25%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 83% 47%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Input Styling */
+    --input: 0 0% 20%;
+    --border: 0 0% 30%;
+    --ring: 0 83% 47%;
 
-    --radius: 0.5rem;
+    --radius: 0.25rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Netflix-specific colors */
+    --netflix-red: 0 83% 47%;
+    --netflix-red-hover: 0 76% 42%;
+    --netflix-dark: 0 0% 8%;
+    --netflix-gray: 0 0% 20%;
+    --netflix-light-gray: 0 0% 55%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Glassmorphism */
+    --glass-bg: 0 0% 0% / 0.75;
+    --glass-border: 0 0% 100% / 0.1;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease;
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 5%;
   }
 
   .dark {
@@ -100,6 +106,54 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-roboto;
+    position: relative;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+    background: url("https://codingstella.com/wp-content/uploads/2024/01/download-4.jpeg");
+    background-position: center;
+    background-size: cover;
+    z-index: -1;
+  }
+}
+
+@layer components {
+  .netflix-input {
+    @apply h-12 w-full bg-netflix-gray border-none outline-none rounded text-foreground text-base px-5 transition-all duration-150;
+  }
+
+  .netflix-input:focus,
+  .netflix-input:valid {
+    @apply bg-accent pt-4 pb-0;
+  }
+
+  .netflix-label {
+    @apply absolute left-5 top-1/2 -translate-y-1/2 text-base pointer-events-none text-netflix-light-gray transition-all duration-100;
+  }
+
+  .netflix-input:focus ~ .netflix-label,
+  .netflix-input:valid ~ .netflix-label {
+    @apply text-xs -translate-y-[130%];
+  }
+
+  .netflix-button {
+    @apply w-full py-4 text-base bg-primary text-primary-foreground font-medium rounded border-none outline-none cursor-pointer transition-colors duration-150;
+  }
+
+  .netflix-button:hover {
+    @apply bg-netflix-red-hover;
+  }
+
+  .glass-card {
+    @apply bg-black/75 backdrop-blur-sm border border-white/10 rounded;
   }
 }

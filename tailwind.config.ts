@@ -18,6 +18,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				roboto: ['Roboto', 'sans-serif']
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -61,7 +64,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				'netflix-red': 'hsl(var(--netflix-red))',
+				'netflix-red-hover': 'hsl(var(--netflix-red-hover))',
+				'netflix-dark': 'hsl(var(--netflix-dark))',
+				'netflix-gray': 'hsl(var(--netflix-gray))',
+				'netflix-light-gray': 'hsl(var(--netflix-light-gray))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
